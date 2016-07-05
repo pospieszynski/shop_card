@@ -28,6 +28,11 @@ attr_accessor :products_count
 		end
 	end
 
+	def back name
+		product =  @products_count.keys.find{ |a| a.name == name}
+		@products_count[product] += 1
+	end
+
 private
 	def available? product
 		unless product.nil?
@@ -40,19 +45,24 @@ end
 
 class ShopBasket
 
-attr_accessor :basket
+attr_accessor :basket, :warehouse
 
-	def initialize 
+	def initialize warehouse
+	 	@warehouse = warehouse
 	 	@basket = []
 	end
 
-	def add product
+	def add name
+		product = warehouse.fetch name
 		(product)? @basket <<(product) : product   
 	end
 
-	def remove product
-		index = basket.index{ |x| x.name == product }
-		basket.delete_at(index) if index
+	def remove name
+		index = basket.index{ |x| x.name == name }
+		if index
+			warehouse.back name
+			basket.delete_at(index)
+		end
 	end
 
 	def price_brutto
@@ -60,7 +70,7 @@ attr_accessor :basket
 	end
 
 	def price_netto
-		self.basket.inject(0){ |sum, n| sum + n.price }
+		basket.inject(0){ |sum, n| sum + n.price }
 	end
 
 	def find_product name
@@ -85,8 +95,8 @@ attr_accessor :basket
 	end
 end
 
-warehouse = WareHouse.new( { Product.new("milk", 5) => 9,  Product.new("bread", 6) => 9 } )
-basket = ShopBasket.new
-30.times { basket.add warehouse.fetch "milk"; basket.add warehouse.fetch "bread" }
-5.times{ basket.remove("milk") }
+basket = ShopBasket.new(  WareHouse.new( { Product.new("milk", 5) => 9,  Product.new("bread", 6) => 9 } ) )
+30.times { basket.add "milk"; basket.add "bread" }
+30.times{ basket.remove("milk") }
 basket.receit
+puts basket.warehouse.inspect
